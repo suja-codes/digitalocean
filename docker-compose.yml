@@ -1,0 +1,40 @@
+# A docker-compose must always start with the version tag. 
+# "3" is the latest version at this time.
+version: "3"
+# Use the keyword 'services' to start to define services.
+services:          # 1 service = 1 container.
+  frontend_service:              # First service (container). Free to choose a keyword (the service name)
+    # Run the service using an existing image or using a Dockerfile
+    
+    # From a Dockerfile
+    build: ./          # path of the Dockerfile to build the image
+    # If you specify image as well as build, then Compose names the built image specified in 'image':
+    ports:          # Expose ports
+      - 8080:8080     # HOST:CONTAINER
+    networks: 
+      - backend-network
+    restart: unless-stopped
+    depends_on:       # Express dependency between services
+      - db_service    # Allows you to define whether the service should wait until other services are ready before launching.
+    
+  db_service:
+    image: mongo
+    volumes:        # Mount host paths or named volumes
+      # Specify an absolute path mapping
+      - bankdata:/data/config/data/db    # HOST:CONTAINER
+    networks: 
+      - backend-network
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    expose:       # Expose ports without publishing them to the host machine
+       - "27017"
+
+networks: 
+  backend-network:
+    driver: bridge
+
+volumes:
+  bankdata:
